@@ -4,6 +4,7 @@ import java.util.Scanner
 
 import cats.effect._
 import cats.implicits._
+import scala.concurrent.duration._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -19,17 +20,16 @@ object Hello extends Greeting {
     fiber.cancel.unsafeRunSync()
   }
 
-  def fib(n: Int, a: Long, b: Long)(implicit cs: ContextShift[IO]): IO[Long] =
-    IO.suspend {
+  def fib(n: Int, a: Long, b: Long)(implicit cs: ContextShift[IO], timer: Timer[IO]): IO[Long] =
+    IO.cancelBoundary *> IO.sleep(1.milliseconds) *> IO.cancelBoundary *> IO(()).flatMap(_ =>
       if (n == 0) IO.pure(a) else {
-        val next = fib(n - 1, b, a + b)
+        println(n)
         // Every 100-th cycle, check cancellation status
         if (n % 100 == 0) {
-          println(n)
-          IO.cancelBoundary *> next
-        } else next
-      }
-    }
+          //          IO.cancelBoundary *>
+          fib(n - 1, b, a + b)
+        } else fib(n - 1, b, a + b)
+      })
 }
 
 trait Greeting {

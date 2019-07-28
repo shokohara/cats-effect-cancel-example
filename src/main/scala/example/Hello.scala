@@ -21,7 +21,7 @@ object Hello extends Greeting {
   }
 
   def fib(mVar: MVar[IO, Boolean])(implicit timer: Timer[IO], cs: ContextShift[IO]): IO[Unit] =
-    IO(Thread.sleep(1000)) *> IO.cancelBoundary *> mVar.put(true)
+    IO(Thread.sleep(1000)) *> IO(println("before cancelBoundary")) *> IO.cancelBoundary *> mVar.put(true)
 }
 
 trait Greeting {
